@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -33,6 +34,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
   var generatedText = '';
   bool isError = false;
   bool _isLoading = false;
+  List<Map<String, String>> previousResults = [];
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +71,35 @@ class _HomePageScreenState extends State<HomePageScreen> {
             ),
             SizedBox(
               height: 20.h,
+            ),
+            DataTable(
+              columnSpacing: 16.0, // Adjust spacing between columns as needed
+              columns: const [
+                DataColumn(label: Text('File Path')),
+                DataColumn(label: Text('Generated Text')),
+              ],
+              rows: List.generate(previousResults.length, (index) {
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      SizedBox(
+                        width: 100, // Adjust the maximum width as needed
+                        child: Text(
+                          previousResults[index]['filePath'] ?? 'No file path',
+                          overflow: TextOverflow.ellipsis, // Show ellipsis if text overflows
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Expanded(
+                        child: Text(
+                          previousResults[index]['generatedText'] ?? 'No generated text',
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
             ),
             const Spacer(),
             Row(
@@ -260,6 +291,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
           // Update UI with transcription
           setState(() {
             generatedText = responseData['transcription'];
+            previousResults.add({
+              'filePath': _pickedFile!.path!,
+              'generatedText': generatedText,
+            });
           });
           showToast(text: 'Success generated', state: ToastStates.SUCCESS);
         } else {
