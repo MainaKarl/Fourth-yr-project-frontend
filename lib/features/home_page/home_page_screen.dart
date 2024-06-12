@@ -32,6 +32,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
   PlatformFile? _pickedFile;
   var generatedText = '';
   bool isError = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +102,16 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_pickedFile != null) {
-                        connectAndSendData(_pickedFile!);
+                        // connectAndSendData(_pickedFile!);
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        showLoadingDialog(context);
+                        await connectAndSendData(_pickedFile!);
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        Navigator.pop(context);
                       } else {
                         print("No file selected");
                       }
@@ -143,6 +153,28 @@ class _HomePageScreenState extends State<HomePageScreen> {
 
   void openFile(PlatformFile file) {
     OpenFile.open(file.path);
+  }
+
+  void showLoadingDialog(BuildContext context){
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+          return const Dialog(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 16),
+                  Text("Loading....")
+                ],
+              ),
+            ),
+          );
+        },
+    );
   }
 
 //   void connectAndSendData(PlatformFile file) async {
@@ -196,7 +228,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
 //   }
 // }
 
-  void connectAndSendData(PlatformFile file) async {
+  Future <void> connectAndSendData(PlatformFile file) async {
     print("Attempting to send data to backend...");
     try {
       // Save the picked file to the device's storage
@@ -205,7 +237,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
       // Prepare the request body
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://fourth-yr-project-production.up.railway.app/video'), // Update the URL with your backend endpoint
+        // Uri.parse('https://fourth-yr-project-production.up.railway.app/video'), // Update the URL with your backend endpoint
+        Uri.parse('https://7f4c-154-70-54-99.ngrok-free.app/video'),
       );
 
       // Add the file to the request
